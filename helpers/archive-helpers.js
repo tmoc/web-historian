@@ -25,17 +25,23 @@ exports.initialize = function(pathsObj){
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
+// require in htmlFetch
 exports.readListOfUrls = function(){
 };
 
+// require in requestHandler, to check if url exists before adding to the sites.txt file
 exports.isUrlInList = function(){
 };
 
+// require in requestHandler, if url is not already in the list, add it
 exports.addUrlToList = function(){
 };
 
+// require in requestHandler, if url is found, render the page
+// require in fetch, if not, download urls
 exports.isURLArchived = function(){
 };
 
+// require in htmlFetch
 exports.downloadUrls = function(){
 };
