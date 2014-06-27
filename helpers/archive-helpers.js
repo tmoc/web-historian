@@ -10,9 +10,9 @@ var request = require('request');
  * customize it in any way you wish.
  */
 
-exports.paths = {
+exports.paths= paths = {
   'siteAssets' : path.join(__dirname, '../web/public'),
-  'archivedSites' : path.join(__dirname, '../archives/sites'),
+  'archivedSites' : path.join(__dirname, '../archives/sites/'),
   'list' : path.join(__dirname, '../archives/sites.txt')
 };
 
@@ -27,52 +27,57 @@ exports.initialize = function(pathsObj){
 // modularize your code. Keep it clean!
 
 // require in htmlFetch
-exports.readListOfUrls = function(){
-  var sitesList;
-  fs.readFile(this.paths.list, function(err, file){
-    //turn sites.txt to string
-    //use split(/n) to turn that sting into an array
-    sitesList = file.toString().split('\n');
+exports.readListOfUrls = readListOfUrls = function(callback){
+  fs.readFile(exports.paths.list, function(err, data){
+    callback(data);
   });
-  //return Array
-  return sitesList;
 };
 
 // require in requestHandler, to check if url exists before adding to the sites.txt file
-exports.isUrlInList = function(url){
-  var sitesList = this.readListOfUrls();
-  for(var i = 0; i< siteList.length; i++){
-    if(url === siteList[i]){
-      return true;
+exports.isUrlInList = function(url, callback){
+  var sitesList;
+  var urlInList = false;
+  exports.readListOfUrls(function (data) {
+    sitesList = data.toString().split('\n');
+    for(var i = 0; i< sitesList.length; i++){
+      if(url === sitesList[i]){
+        urlInList = true;
+      }
     }
-  }
-  return false;
+    callback(urlInList);
+  });
+
+
 };
 
 // require in requestHandler, if url is not already in the list, add it
 exports.addUrlToList = function(url){
-  fs.appendFile(this.paths.list, '\n'+ url, function(err){
+  fs.appendFile(exports.paths.list, url, function(err){
     if(err){
-      console.log('Error: ', err);
+      console.log('Error: Archive-helper, line 57', err);
     }
   });
+};
+
+exports.blockingIsURLArchived = function (url) {
+  return fs.existsSync(exports.paths.archivedSites + url);
 };
 
 // require in requestHandler, if url is found, render the page
 // require in fetch, if not, download urls
-exports.isURLArchived = function(url){
+exports.isURLArchived = function(url, callback){
   //do we need to reurn the results of this called function?
-  var urlExists = false;
-  fs.exists(this.path.archivedSites + url, function(exists){
-    if(exists){
-      urlExists = true;
-    }
+  console.log(__dirname +"/"+ url);
+  console.log(url);
+
+  fs.exists(exports.paths.archivedSites + url, function(exists){
+    console.log(exists);
+    callback(exists);
   });
-  return urlExists;
 };
 
 // require in htmlFetch
 exports.downloadUrls = function(url){
-  var sitePath = fs.createWriteStream(this.path.archivedSites + url);
+  var sitePath = fs.createWriteStream(path.join(exports.paths.archivedSites, url));
   request('http://' + url).pipe(sitePath);
 };

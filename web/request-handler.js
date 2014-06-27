@@ -9,22 +9,33 @@ exports.handleRequest = function (req, res) {
   if (req.method === 'GET') {
     if (req.url === '/') {
       httpHelpers.serveAssets(res, '/public/index.html');
-    } else if (/www\.\S*\.\S*/.test(res.url)) {
-      var isArchived = archive.isURLArchived(req.url);
-      if (isArchived) {
-        httpHelpers.serveAssets(res, '../archives/sites' + req.url); //missing /?
-      } else {
-        var inList = archive.isUrlInList(req.url);
-        if (!inList) {
-          archive.addUrlToList(req.url);
+      // require and require www
+    } else if (/\?url=www\.\S*\.\S*/.test(req.url)) {
+      req.url = req.url.slice(6);
+      archive.isURLArchived(req.url, function (isArchived) {
+        console.log(isArchived);
+        console.log(req.url);
+        if (isArchived) {
+          httpHelpers.serveAssets(res, '../archives/sites/' + req.url);
+        } else {
+          archive.isUrlInList(req.url, function (isInList) {
+            if (isInList) {
+              archive.addUrlToList(req.url);
+            }else {
+              httpHelpers.serveAssets(res, '/public/loading.html');
+            }
+          });
         }
-        httpHelpers.serveAssets(res, '/public/loading.html');
-      }
-    } else if (/\S*\.\S*/.test(req.url)) {
-      httpHelpers.serveAssets(res, '/public/' + req.url);
+      });
+    } else if (/\S*\.(css|js|html)/.test(req.url)) {
+      console.log("this is the url you wanted: ", req.url);
+      // httpHelpers.serveAssets(res, req.url);
+      httpHelpers.serveAssets(res, '/public' + req.url);
     }
   }
   // use regExp
   // check for
   // res.end(archive.paths.list);
 };
+
+// (/www\.google\.com/).test(fileText)
